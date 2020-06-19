@@ -11,20 +11,25 @@ SEC_GROUP_MODULE_NAME = 'os_security_group'
 SEC_RULE_MODULE_NAME = 'os_security_group_rule'
 
 
-class TestAnsibleOpenStackOutput (unittest.TestCase, TestAnsibleProvider):
+class TestAnsibleOpenStackOutput(unittest.TestCase, TestAnsibleProvider):
     PROVIDER = 'openstack'
 
     def test_validation(self):
-        shell.main(['--template-file', 'examples/tosca-server-example-openstack.yaml', '--validate-only'])
+        shell.main(['--template-file', 'examples/tosca-server-example-openstack.yaml', '--cluster-name', 'test',
+                    '--validate-only'])
 
     def test_translating_to_ansible(self):
-        shell.main(['--template-file', 'examples/tosca-server-example-openstack.yaml', '--provider', self.PROVIDER])
+        shell.main(
+            ['--template-file', 'examples/tosca-server-example-openstack.yaml', '--cluster-name', 'test', '--provider',
+             self.PROVIDER])
 
     def test_full_translating(self):
-        shell.main(['--template-file', 'examples/tosca-server-example.yaml', '--provider', self.PROVIDER])
+        shell.main(['--template-file', 'examples/tosca-server-example.yaml', '--cluster-name', 'test', '--provider',
+                    self.PROVIDER])
 
     def test_full_async_translating(self):
-        shell.main(['--template-file', 'examples/tosca-server-example.yaml', '--provider', self.PROVIDER, '--async'])
+        shell.main(['--template-file', 'examples/tosca-server-example.yaml', '--cluster-name', 'test', '--provider',
+                    self.PROVIDER, '--async'])
 
     def test_server_name(self):
         template = copy.deepcopy(self.DEFAULT_TEMPLATE)
@@ -33,13 +38,13 @@ class TestAnsibleOpenStackOutput (unittest.TestCase, TestAnsibleProvider):
         self.assertIsInstance(playbook[0], dict)
         self.assertIsNotNone(playbook[0]['tasks'])
         tasks = playbook[0]['tasks']
-        self.assertEqual(len(tasks), 1)
+        self.assertEqual(len(tasks), 4)
         self.assertIsNotNone(tasks[0][SERVER_MODULE_NAME])
         server = tasks[0][SERVER_MODULE_NAME]
         self.assertEqual(server['name'], self.NODE_NAME)
 
     def test_async_meta(self):
-        extra={
+        extra = {
             'async': True,
             'retries': 3,
             'delay': 1,
@@ -50,7 +55,7 @@ class TestAnsibleOpenStackOutput (unittest.TestCase, TestAnsibleProvider):
     def test_meta(self, extra=None):
         super(TestAnsibleOpenStackOutput, self).test_meta(extra=extra)
 
-    def check_meta (self, tasks, testing_value=None, extra=None):
+    def check_meta(self, tasks, testing_value=None, extra=None):
         server_name = None
         for task in tasks:
             if task.get(SERVER_MODULE_NAME):

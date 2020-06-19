@@ -29,9 +29,10 @@ class ProviderToscaTemplate (object):
     DEPENDENCY_FUNCTIONS = (GET_PROPERTY, GET_ATTRIBUTE, GET_OPERATION_OUTPUT)
     DEFAULT_ARTIFACTS_DIRECTOR = ARTIFACTS
 
-    def __init__(self, tosca_parser_template, provider):
+    def __init__(self, tosca_parser_template, provider, cluster_name):
 
         self.provider = provider
+        self.cluster_name = cluster_name
         self.provider_config = ProviderConfiguration(self.provider)
         ExceptionCollector.start()
         for sec in self.REQUIRED_CONFIG_PARAMS:
@@ -118,7 +119,7 @@ class ProviderToscaTemplate (object):
                 tool_artifacts.append(art)
         extra = deep_update_dict(extra, self.extra_configuration_tool_params.get(configuration_tool, {}))
         self.configuration_content = tool.to_dsl_for_create(self.provider, self.provider_nodes_queue, tool_artifacts,
-                                                            directory, extra=extra)
+                                                            directory, self.cluster_name, extra=extra)
         self.configuration_ready = True
         return self.configuration_content
 
@@ -140,7 +141,6 @@ class ProviderToscaTemplate (object):
                 ))
             configuration_class.create_artifact(filename, art)
             self.artifacts.append(filename)
-        return
 
     def _sort_nodes_by_priority(self):
         """
@@ -325,8 +325,6 @@ class ProviderToscaTemplate (object):
                 self.search_get_function(node_name, i)
         elif isinstance(data, (str, int, float)):
             return
-
-        return
 
     def resolve_in_template_get_functions(self):
         """
